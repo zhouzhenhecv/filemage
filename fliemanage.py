@@ -130,7 +130,7 @@ def Read(filename):
     f.close()
     return map
 
-def main():
+def test():
     List = getfileurlbydir(filelist,dir)
     print "###############################"
     for i in List:
@@ -149,7 +149,8 @@ def main():
     return
 
 
-main()
+if __name__ == '__main__':
+    test()
 
 
 
