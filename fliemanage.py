@@ -1,81 +1,55 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+#linux
+
 import os
 import shutil
-###linux
-#源码目录
-#是否应该设置目录是输入的 
-#dir_pre = raw_input("please input the code dir \n for example :/homesec/lbteam/zhouzhenhe/code03/code/ ")
+import pickle
+
+#set manage dir
 dir_main= "/share/"
 dir_sub = "python_learn/learn/"
-##注意  需要处理的文件夹或者文件名在这里添加
+dir = dir_main+ dir_sub
+
+# set copy or move destine dir
 dir_des = "/share/temp"
 savefilename = dir_des + r"/" + "map.mak"
 
+#set manage sub dir or file 
 filelist=["test"\
 ,"a.c"\
 ,"a.h"];
 
-print filelist
-#复制到的目标文件夹，或者移动到的 
-
-#映射关系
-file_des_src_map = [];
-
-#拆分filelist 分成filelist_dir  filelist_file
-#获取所要删除的文件的路径
-dir = dir_main+ dir_sub
-
-#print dir
-#
-# shutil.copy(sourceDir,  targetDir)
-#copy映射关系保存到文件
-#先获取所有映射关系表
-
-def getdirfilelist(dir):
+#get all file url by the dir
+def get_all_files(dir):
     savefilelist = []
     for dirpath,dirnames,filenames in os.walk(dir):  
         for file in filenames:
             if [] != file:
                 file_tmp = os.path.join(dirpath,file);
-                print "delete:",file_tmp
                 savefilelist.append(file_tmp)
     return savefilelist
 
-#python 如何判断是否是一个目录  os.path.isdir(path)
-def getfileurlbydir(FList,Dir):
+#get  Flist designate file url by Dir 
+def get_all_files_by_list_and_dir(FList,Dir):
     DesFileList = []
     for dirpath,dirnames,filenames in os.walk(Dir):      
         for ifilenames in filenames:
             for iFList in FList:
                 if iFList == ifilenames :
                     desfile = os.path.join(dirpath,ifilenames)
-                    print "delete:",desfile
                     DesFileList.append(desfile)
+        #if Flist have sub dir ,speacially deal with  
         for idirnames in dirnames:
             for iFList in FList:
                 if idirnames == iFList:
                     desdir = os.path.join(dirpath,idirnames)
-                    DesFileList.extend(getdirfilelist(desdir))
+                    DesFileList.extend( get_all_files(desdir) )
     return DesFileList
 
-###批量删除列表中的所有文件
-#相关函数os.remove(path) 函数用来删除一个文件
-#os.path.isfile() 和os.path.isdir()函数分别检验给出的路径是一个文件还是目录
-def deleteallfile(FileList):
-    for iF in FileList:
-        if True == os.path.isfile(iF):
-            os.remove(iF)
-    return
+#os.path.join(path,name) connect dir and filename
+#os.path.split(path)  return dir and filename
 
-###批量重命名 以某种后缀名   是否需要先建立某种映射关系
-##相关函数 os.path.splitext()  分离文件名与扩展名
-#os.path.join(path,name) 连接目录与文件名或目录
-#os.path.split(path)  函数返回一个路径的目录名和文件名
-#os.path.join(path,name) 连接目录与文件名或目录
-#shutil.copy( src, dst)  复制一个文件到一个文件或一个目录
-#shutil.copy2( src, dst)  在copy上的基础上再复制文件最后访问时间与修改时间也复制过来了，类似于cp –p的东西
-#shutil.copy2( src, dst)  如果两个位置的文件系统是一样的话相当于是rename操作，只是改名；如果是不在相同的文件系统的话就是做move操作
-def getdesfliename(filename,exname,flag=0,des=''):
+def get_des_fliename(filename,exname,flag=0,des=''):
     path_temp , subfilename = os.path.split(filename)
     path = ""
     if flag == 0:
@@ -84,70 +58,79 @@ def getdesfliename(filename,exname,flag=0,des=''):
         path = des      
     return path + r"/" + subfilename + exname
 
-def renameallflie(FileList,exname):
-    for iF in FileList:
-        desname = getdesfliename(iF,exname)
-        print desname
-        #shutil.copy( iF, desname)
-        #if True == os.path.isfile(desname):
-         #   os.remove(desname)
-    return
-
-
-###copy 到指定目录
-def copyallfile(SrcFile,DesFile):
-###判断DesFile是否为目录
-###判断所有源文件
-    if os.path.isdir(DesFile) == False:
-        return;
-
-    return
-###
-
+#set file map
+#and the map,[source,destination]
 def setmap(FileList,exname,flag,des):
     map = []
     for iF in FileList:
-        desname = getdesfliename(iF,exname,flag,des)
-        print [iF,desname]
+        desname = get_des_fliename(iF,exname,flag,des)
         map.append([iF,desname])
-        #print map
     return map
 
-
-
-#保存映射关系到文件
-import pickle
+#save the file map by pickle
 def Write(filename,map):
     f = open(filename,"w")
-    #print map
     pickle.dump(map,f)
     f.close()
+
 def Read(filename):
     map=[]
     f = open(filename,"r")
     map = pickle.load(f)
-    #print map
     f.close()
     return map
 
+#deleteallfile(filelist),batch delete all file. and the argv filelist is list ,have many files or a file.
+#os.remove(path) delete a flle
+#os.path.isfile()  check file exist , os.path.isdir() check dir exist
+def del_all_file(FileList):
+    for iF in FileList:
+        if True == os.path.isfile(iF):
+            os.remove(iF)
+    return
+
+#copy 
+# shutil.copy(sourceDir,  targetDir)
+#shutil.copy( src, dst)  复制一个文件到一个文件或一个目录
+#shutil.copy2( src, dst)  在copy上的基础上再复制文件最后访问时间与修改时间也复制过来了，类似于cp –p的东西
+#shutil.copy2( src, dst)  如果两个位置的文件系统是一样的话相当于是rename操作，只是改名；如果是不在相同的文件系统的话就是做move操作
+def copy_all_file(FileMap):
+    for [src,des] in FileMap:
+        if True == os.path.isfile(src):
+            shutil.copy(src,des)
+    return
+#rename or move
+def rename_all_flie(FileMap):
+    for [src,des] in FileMap:
+        if True == os.path.isfile(src):
+            shutil.copy(src,des)
+    return
+
 def test():
-    List = getfileurlbydir(filelist,dir)
-    print "###############################"
+    print filelist
+    print "###############test get_all_files_by_list_and_dir()################"
+    List = get_all_files_by_list_and_dir(filelist,dir)
     for i in List:
         print i
+
+    print "###############test setmap()################"
     filemap = []
     filemap = setmap(List,"mak",1,dir_des)
     print filemap
-
+    
+    print "############test Write() and Read()################"
     Write(savefilename,filemap)
-    ##
     print "*******************************************"
     testmap = Read(savefilename);
-
     print testmap
     
+    print "###########test copy_all_file() ###########"
+    copy_all_file(filemap)
+    #print "###########test rename_all_flie() ###########"
+    #rename_all_flie(filemap)
+    #print "###########test del_all_file() ###########"
+    # del_all_file(List)
     return
-
 
 if __name__ == '__main__':
     test()
